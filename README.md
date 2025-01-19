@@ -24,11 +24,12 @@ This script can be run using a bot or user token depending on your needs.
    ```
 2. **Install dependencies**:
     ```bash
-    pip install discord.py schedule discord.py-self
+    pip install discord.py schedule discord.py-self pytz
     ```
 
-4. **Set up the environment file**: 
-   Start the script with `python3 word_of_the_day.py`
+3. **Set up the environment file**: 
+
+    Start the script with `python3 word_of_the_day.py`
     This will create a new `token.env` file. Edit this file to specify your discord token.
     E.g. 
     ```bash
@@ -36,7 +37,15 @@ This script can be run using a bot or user token depending on your needs.
         "token": "YOUR_DISCORD_TOKEN_HERE"
     }
     ```
+
+4. **(Optional) configure update time**:
+
+   Edit the `config.json` file to choose what time you want the status to update each day.
+   Valid times are in the 24-hour format (HH:MM).
+   See [this](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568) page for information on valid timezones.
+   
 5. **Running the script**:
-Start the script again with `python3 word_of_the_day.py`.
-As long as the script continues to run it will update your discord status with the Word of the Day each day at a default time of 6:00 AM.
+
+   Start the script again with `python3 word_of_the_day.py`.
+   As long as the script continues to run it will update your discord status with the Word of the Day each day at a default time of 6:00 AM.
 
