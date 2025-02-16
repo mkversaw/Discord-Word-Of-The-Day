@@ -10,9 +10,14 @@ import pytz
 import random
 
 # Path to the .env file and word CSV file
-ENV_FILE = "token.env"
-WORD_FILE = "word_list.csv"
-CONFIG_FILE = "config.json"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+ENV_FILE = os.path.join(BASE_DIR, "token.env")
+WORD_FILE = os.path.join(BASE_DIR, "word_list.csv")
+
+failureCount = 0 # times in a row that status update has failed.
 
 def load_time_and_timezone():
     """
@@ -90,17 +95,43 @@ class SelfClient(discord.Client):
 def update_status():
     token = load_token()
     word_of_the_day = "WOTD: " + get_word_of_the_day()
-    client = SelfClient(word_of_the_day)
-    client.run(token)
 
-    print("status updated to: " + word_of_the_day)
+    try:
+        client = SelfClient(word_of_the_day)
+        client.run(token)
+        # update completed successfully!
+        print("status updated to: " + word_of_the_day)
+        reschedule_update(update_status)
+    except discord.LoginFailure as e:
+        print(f"Login failure: {e}")
+        print("Verify that discord token is correctly entered. Exiting application")
+        exit(1) # unrecoverable
+    except discord.HTTPException as e:
+        print(f"Discord HTTP error: {e}")
+        print("retrying in 5 minutes")
+        reschedule_update_after_failure(update_status)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        print("retrying in 5 minutes")
+        reschedule_update_after_failure(update_status)
 
-    reschedule_update(update_status)
+def reschedule_update_after_failure(task_func):
+    global failureCount
+    failureCount += 1
+    if failureCount == 3:
+        print("Failed to update status after 3 attempts. Exiting application")
+        exit(1)
+    else:
+        schedule.clear()
+        schedule.every(5).minutes.do(task_func)
+
+
 
 # Schedule at the specified time from the config file,
 # with a random delay between 0 and 60 seconds.
 def reschedule_update(task_func):
-
+    global failureCount
+    failureCount = 0
     time_str, timezone_str = load_time_and_timezone()
     
     # clear any previous tasks
